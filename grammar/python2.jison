@@ -17,7 +17,7 @@ eval_input
 	;
 
 decorator
-	:	'@' dotted_name [ '(' [arglist] ')' ] NEWLINE
+	:	AT dotted_name [ LPAREN [arglist] RPAREN ] NEWLINE
 	;
 
 decorators
@@ -29,56 +29,56 @@ decorated
 	;
 
 funcdef
-	:	'def' NAME parameters ':' suite
+	:	DEF Identifier parameters COLON suite
 	;
 
 parameters
-	: '(' [varargslist] ')'
+	: LPAREN [varargslist] RPAREN
 	;
 
 varargslist
-	:	((fpdef ['=' test] ',')*('*' NAME [',' '**' NAME] | '**' NAME) | fpdef ['=' test] (',' fpdef ['=' test])* [','])
+	:	((fpdef [ASSIGN test] COMMA)*(MUL Identifier [COMMA DOUBLEMUL Identifier] | DOUBLEMUL Identifier) | fpdef [ASSIGN test] (COMMA fpdef [ASSIGN test])* [COMMA])
 	;
 
 fpdef
-	: NAME
-	| '(' fplist ')'
+	: Identifier
+	| LPAREN fplist RPAREN
 	;
 
 fplist
-	:	fpdef (',' fpdef)* [',']
+	:	fpdef (COMMA fpdef)* [COMMA]
 	;
 
 stmt
 	:	simple_stmt
-	| compound_stmt
+	|	compound_stmt
 	;
 
 simple_stmt
-	:	small_stmt (';' small_stmt)* [';'] NEWLINE
+	:	small_stmt (SEMI small_stmt)* [SEMI] NEWLINE
 
 small_stmt
 	:	(expr_stmt | print_stmt  | del_stmt | pass_stmt | flow_stmt | import_stmt | global_stmt | exec_stmt | assert_stmt)
 	;
 
 expr_stmt
-	:	testlist (augassign (yield_expr|testlist) | ('=' (yield_expr|testlist))*)
+	:	testlist (augassign (yield_expr|testlist) | (ASSIGN (yield_expr|testlist))*)
 	;
 
 augassign
-	:	('+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>>=' | '**=' | '//=')
+	:	(ADD_ASSIGN | SUB_ASSIGN | MUL_ASSIGN | DIV_ASSIGN | MOD_ASSIGN | AND_ASSIGN | OR_ASSIGN | XOR_ASSIGN | LSHIFT_ASSIGN | RSHIFT_ASSIGN | DOUBLEMUL_ASSIGN | DOUBLEDIV_ASSIGN)
 
 /*For normal assignments, additional restrictions enforced by the interpreter*/
 print_stmt
-	:	'print' ( [ test (',' test)* [','] ] | '>>' test [ (',' test)+ [','] ] )
+	:	PRINT ( [ test (COMMA test)* [COMMA] ] | RSHIFT test [ (COMMA test)+ [COMMA] ] )
 	;
 
 del_stmt
-	:	'del' exprlist
+	:	DEL exprlist
 	;
 
 pass_stmt
-	:	'pass'
+	:	PASS
 	;
 
 flow_stmt
@@ -90,15 +90,15 @@ flow_stmt
 	;
 
 break_stmt
-	:	'break'
+	:	BREAK
 	;
 
 continue_stmt
-	:	'continue'
+	:	CONTINUE
 	;
 
 return_stmt
-	:	'return' [testlist]
+	:	RETURN [testlist]
 	;
 
 yield_stmt
@@ -106,7 +106,7 @@ yield_stmt
 	;
 
 raise_stmt
-	:	'raise' [test [',' test [',' test]]]
+	:	RAISE [test [COMMA test [COMMA test]]]
 	;
 
 import_stmt
@@ -115,43 +115,43 @@ import_stmt
 	;
 
 import_name
-	:	'import' dotted_as_names
+	:	IMPORT dotted_as_names
 	;
 
 import_from
-	:	('from' ('.'* dotted_name | '.'+) 'import' ('*' | '(' import_as_names ')' | import_as_names))
+	:	(FROM (DOT* dotted_name | DOT+) IMPORT (MUL | LPAREN import_as_names RPAREN | import_as_names))
 	;
 
 import_as_name
-	:	NAME ['as' NAME]
+	:	Identifier [AS Identifier]
 	;
 
 dotted_as_name
-	:	dotted_name ['as' NAME]
+	:	dotted_name [AS Identifier]
 	;
 
 import_as_names
-	:	import_as_name (',' import_as_name)* [',']
+	:	import_as_name (COMMA import_as_name)* [COMMA]
 	;
 
 dotted_as_names
-	:	dotted_as_name (',' dotted_as_name)*
+	:	dotted_as_name (COMMA dotted_as_name)*
 	;
 
 dotted_name
-	:	NAME ('.' NAME)*
+	:	Identifier (DOT Identifier)*
 	;
 
 global_stmt
-	:	'global' NAME (',' NAME)*
+	:	GLOBAL Identifier (COMMA Identifier)*
 	;
 
 exec_stmt
-	:	'exec' expr ['in' test [',' test]]
+	:	EXEC expr [IN test [COMMA test]]
 	;
 
 assert_stmt
-	:	'assert' test [',' test]
+	:	ASSERT test [COMMA test]
 	;
 
 compound_stmt
@@ -166,36 +166,36 @@ compound_stmt
 	;
 
 if_stmt
-	:	'if' test ':' suite ('elif' test ':' suite)* ['else' ':' suite]
+	:	IF test COLON suite (ELIF test COLON suite)* [ELSE COLON suite]
 	;
 
 while_stmt
-	:	'while' test ':' suite ['else' ':' suite]
+	:	WHILE test COLON suite [ELSE COLON suite]
 	;
 
 for_stmt
-	:	'for' exprlist 'in' testlist ':' suite ['else' ':' suite]
+	:	FOR exprlist IN testlist COLON suite [ELSE COLON suite]
 	;
 
 try_stmt
-	:	('try' ':' suite
-		   ((except_clause ':' suite)+
-			['else' ':' suite]
-			['finally' ':' suite] |
-		   'finally' ':' suite))
+	:	(TRY COLON suite
+		   ((except_clause COLON suite)+
+			[ELSE COLON suite]
+			[FINALLY COLON suite] |
+		   FINALLY COLON suite))
 	;
 
 with_stmt
-	:	'with' with_item (',' with_item)*  ':' suite
+	:	WITH with_item (COMMA with_item)*  COLON suite
 	;
 
 with_item
-	:	test ['as' expr]
+	:	test [AS expr]
 	;
 
 /* NB compile.c makes sure that the default except clause is last */
 except_clause
-	:	'except' [test [('as' | ',') test]]
+	:	EXCEPT [test [(AS | COMMA) test]]
 	;
 
 suite
@@ -210,7 +210,7 @@ suite
  (But not a mix of the two)
 */
 testlist_safe
-	:	old_test [(',' old_test)+ [',']]
+	:	old_test [(COMMA old_test)+ [COMMA]]
 	;
 
 old_test
@@ -219,24 +219,24 @@ old_test
 	;
 
 old_lambdef
-	:	'lambda' [varargslist] ':' old_test
+	:	LAMBDA [varargslist] COLON old_test
 	;
 
 test
-	:	or_test ['if' or_test 'else' test]
+	:	or_test [IF or_test ELSE test]
 	|	lambdef
 	;
 
 or_test
-	:	and_test ('or' and_test)*
+	:	and_test (OR and_test)*
 	;
 
 and_test
-	:	not_test ('and' not_test)*
+	:	not_test (AND not_test)*
 	;
 
 not_test
-	:	'not' not_test
+	:	NOT not_test
 	|	comparison
 	;
 
@@ -245,123 +245,123 @@ comparison
 	;
 
 comp_op
-	:	'<'
-	|	'>'
-	|	'=='
-	|	'>='
-	|	'<='
-	|	'<>'
-	|	'!='
-	|	'in'
-	|	'not' 'in'
-	|	'is'
-	|	'is' 'not'
+	:	LT
+	|	GT
+	|	EQUAL
+	|	GE
+	|	LE
+	|	NOTEQUAL
+	|	NOTEQUAL
+	|	IN
+	|	NOT IN
+	|	IS
+	|	IS NOT
 	;
 
 expr
-	:	xor_expr ('|' xor_expr)*
+	:	xor_expr (BITOR xor_expr)*
 	;
 
 xor_expr
-	:	and_expr ('^' and_expr)*
+	:	and_expr (CARET and_expr)*
 	;
 
 and_expr
-	:	shift_expr ('&' shift_expr)*
+	:	shift_expr (BITAND shift_expr)*
 	;
 
 shift_expr
-	:	arith_expr (('<<'|'>>') arith_expr)*
+	:	arith_expr ((LSHIFT|RSHIFT) arith_expr)*
 	;
 
 arith_expr
-	:	term (('+'|'-') term)*
+	:	term ((ADD|SUB) term)*
 	;
 
 term
-	:	factor (('*'|'/'|'%'|'//') factor)*
+	:	factor ((MUL|DIV|MOD|INTEGER_DIV) factor)*
 	;
 
 factor
-	:	('+'|'-'|'~') factor
+	:	(ADD|SUB|TILDE) factor
 	|	power
 	;
 
 power
-	:	atom trailer* ['**' factor]
+	:	atom trailer* [DOUBLEMUL factor]
 	;
 
 atom
-	:	('(' [yield_expr|testlist_comp] ')' |
-	   '[' [listmaker] ']' |
-	   '{' [dictorsetmaker] '}' |
-	   '`' testlist1 '`' |
-	   NAME | NUMBER | STRING+)
+	:	(LPAREN [yield_expr|testlist_comp] RPAREN |
+	   LBRACK [listmaker] RBRACK |
+	   LBRACE [dictorsetmaker] RBRACE |
+	   DOT2 testlist1 DOT2 |
+	   Identifier | NUMBER | STRING+)
 	;
 
 listmaker
-	:	test ( list_for | (',' test)* [','] )
+	:	test ( list_for | (COMMA test)* [COMMA] )
 	;
 
 testlist_comp
-	:	test ( comp_for | (',' test)* [','] )
+	:	test ( comp_for | (COMMA test)* [COMMA] )
 	;
 
 lambdef
-	:	'lambda' [varargslist] ':' test
+	:	LAMBDA [varargslist] COLON test
 	;
 
 trailer
-	:	'(' [arglist] ')'
-	|	'[' subscriptlist ']'
-	|	'.' NAME
+	:	LPAREN [arglist] RPAREN
+	|	LBRACK subscriptlist RBRACK
+	|	DOT Identifier
 	;
 
 subscriptlist
-	:	subscript (',' subscript)* [',']
+	:	subscript (COMMA subscript)* [COMMA]
 	;
 
 subscript
-	:	'.' '.' '.'
+	:	DOT DOT DOT
 	|	test
-	|	[test] ':' [test] [sliceop]
+	|	[test] COLON [test] [sliceop]
 	;
 
 sliceop
-	:	':' [test]
+	:	COLON [test]
 	;
 
 exprlist
-	:	expr (',' expr)* [',']
+	:	expr (COMMA expr)* [COMMA]
 	;
 
 testlist
-	:	test (',' test)* [',']
+	:	test (COMMA test)* [COMMA]
 	;
 
 dictorsetmaker
-	:	( (test ':' test (comp_for | (',' test ':' test)* [','])) |
-				  (test (comp_for | (',' test)* [','])) )
+	:	( (test COLON test (comp_for | (COMMA test COLON test)* [COMMA])) |
+				  (test (comp_for | (COMMA test)* [COMMA])) )
 	;
 
 classdef
-	:	'class' NAME ['(' [testlist] ')'] ':' suite
+	:	CLASS Identifier [LPAREN [testlist] RPAREN] COLON suite
 	;
 
 arglist
-	:	(argument ',')* (argument [',']
-						 |'*' test (',' argument)* [',' '**' test] 
-						 |'**' test)
+	:	(argument COMMA)* (argument [COMMA]
+						 |MUL test (COMMA argument)* [COMMA DOUBLEMUL test]
+						 |DOUBLEMUL test)
 	;
 
 /*
- The reason that keywords are test nodes instead of NAME is that using NAME
- results in an ambiguity. ast.c makes sure it's a NAME.
+ The reason that keywords are test nodes instead of Identifier is that using Identifier
+ results in an ambiguity. ast.c makes sure it's a Identifier.
 */
 
 argument
 	:	test [comp_for]
-	|	test '=' test
+	|	test ASSIGN test
 	;
 
 list_iter
@@ -370,11 +370,11 @@ list_iter
 	;
 
 list_for
-	:	'for' exprlist 'in' testlist_safe [list_iter]
+	:	FOR exprlist IN testlist_safe [list_iter]
 	;
 
 list_if
-	:	'if' old_test [list_iter]
+	:	IF old_test [list_iter]
 	;
 
 comp_iter
@@ -383,24 +383,24 @@ comp_iter
 	;
 
 comp_for
-	:	'for' exprlist 'in' or_test [comp_iter]
+	:	FOR exprlist IN or_test [comp_iter]
 	;
 
 comp_if
-	:	'if' old_test [comp_iter]
+	:	IF old_test [comp_iter]
 	;
 
 testlist1
-	:	test (',' test)*
+	:	test (COMMA test)*
 	;
 
 /* not used in grammar, but may appear in "node" passed from Parser to Compiler */
 encoding_decl
-	:	NAME
+	:	Identifier
 	;
 
 yield_expr
-	:	'yield' [testlist]
+	:	YIELD [testlist]
 	;
 
 %%
